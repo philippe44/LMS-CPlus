@@ -1,0 +1,31 @@
+[% PROCESS settings/header.html %]
+
+	[% WRAPPER setting title="PLUGIN_CPLUS_BANNER" %]
+		<div>[% "PLUGIN_CPLUS_BANNER_TEXT" | string %]</div>
+	[% END %]
+
+	<div class="prefDesc">
+	[% WRAPPER setting title="PLUGIN_CPLUS_SOCKS" desc="PLUGIN_CPLUS_SOCKS_DESC" %]
+
+		[% "PLUGIN_CPLUS_USESOCKS" | string %]
+		<input name="pref_socks" type="checkbox" [% IF prefs.pref_socks %] checked [% END %]>
+		
+		&nbsp[% "PLUGIN_CPLUS_SOCKSSERVER" | string %]
+		<input type="text" class="stdedit" name="pref_socks_server" id="pref_socks_server" value="[% prefs.pref_socks_server %]" size="10">
+		
+		[% "PLUGIN_CPLUS_SOCKSPORT" | string %]
+		<input type="text" class="stdedit" name="pref_socks_port" id="pref_socks_port" value="[% prefs.pref_socks_port %]" size="4">
+
+	[% END %]
+	
+	[% WRAPPER setting title="PLUGIN_CPLUS_CACHE" desc="PLUGIN_CPLUS_CACHE_DESC" %]
+
+		[% "PLUGIN_CPLUS_DISABLECACHE" | string %]
+		<input name="pref_no_cache" type="checkbox" [% IF prefs.pref_no_cache %] checked [% END %]>
+	
+	[% END %]
+		
+	</div>
+	
+
+[% PROCESS settings/footer.html %]

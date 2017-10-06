@@ -1,0 +1,50 @@
+PLUGIN_CPLUS
+	EN	Canal +
+	
+PLUGIN_CPLUS_DESC
+	EN	Play audio from Canal+ videos.  WARNING: this plugin will use more network bandwidth than other streaming services as the entire video is being streamed even though only the audio is played.	
+	
+PLUGIN_CPLUS_RECENTLYPLAYED
+	EN	Recently Played
+
+PLUGIN_CPLUS_BADURL
+	EN	Bad URL
+
+PLUGIN_CPLUS_WEBLINK
+	EN	Watch Video
+
+PLUGIN_CPLUS_PLAYLINK
+	EN	Play Video
+
+PLUGIN_CPLUS_BANNER
+	EN	WARNING
+
+PLUGIN_CPLUS_BANNER_TEXT
+	EN	Please note that this plugin streams the entire Canal+ video file to playback the audio stream.  This will use use significantly more network bandwidth than audio only streaming.  Please consider this if your internet connection has a usage charge.
+
+PLUGIN_CPLUS_SOCKS
+	EN	Socks proxy configuration
+
+PLUGIN_CPLUS_SOCKS_DESC
+	EN	Use a socks proxy server (avoid geolock)
+
+PLUGIN_CPLUS_USESOCKS
+	EN	Activate
+
+PLUGIN_CPLUS_SOCKSSERVER
+	EN	Server
+	
+PLUGIN_CPLUS_SOCKSPORT
+	EN	Port
+
+PLUGIN_CPLUS_CACHE
+	EN	Cache options
+	
+PLUGIN_CPLUS_DISABLECACHE
+	EN	Disable
+
+PLUGIN_CPLUS_CACHE_DESC
+	EN	Disable cache of pages (useful when changing from proxy / no proxy)
+
+	
+	
