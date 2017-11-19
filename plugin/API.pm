@@ -40,7 +40,7 @@ sub searchProgram {
 		return $cb->( $result ) if $result->{error};
 		
 		$result = first { $_->{type} eq 'links' } @{$result->{strates}};
-		$result = first { $_->{title} eq 'Emissions' } @{$result->{contents}};
+		$result = first { $_->{title} eq 'Divertissement' } @{$result->{contents}};
 			
 		search( $result->{onClick}->{URLPage}, $step3)
 	};
@@ -50,7 +50,7 @@ sub searchProgram {
 				
 		return $cb->( $result ) if $result->{error};
 		
-		$result = first { $_->{title} eq 'Emissions' } @{$result->{strates}};
+		$result = first { $_->{type} eq 'contentGrid' } @{$result->{strates}};
 		my @list = @{$result->{contents}};
 		# $log->debug(Dumper(@list));
 		
