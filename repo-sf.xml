@@ -4,14 +4,14 @@
     <title lang="EN">Philippe's CPlus plugin - development</title>
   </details>
   <plugins>
-    <plugin name="CPlus" version="0.2.0" maxTarget="7.*" minTarget="7.7">
-      <sha>f35aa3c01ad58e76c03ac2bf80518ec0ab35664b</sha>
-      <url>http://downloads.sourceforge.net/project/lms-cplus/dev/CPlus-0.2.0.zip</url>
-      <email>philippe_44@outlook.com</email>
+    <plugin maxTarget="7.*" name="CPlus" version="0.2.1" minTarget="7.7">
+      <url>http://downloads.sourceforge.net/project/lms-cplus/dev/CPlus-0.2.1.zip</url>
       <creator>Philippe</creator>
-      <title lang="EN">CPlus</title>
-      <desc lang="EN">Play Canal+ video</desc>
       <link>http://github.com/philippe44/LMS-CPlus</link>
+      <desc lang="EN">Play Canal+ video</desc>
+      <sha>b28a8b7234e000653dd115ebf36354dde72f9d3e</sha>
+      <email>philippe_44@outlook.com</email>
+      <title lang="EN">CPlus</title>
     </plugin>
   </plugins>
 </extensions>

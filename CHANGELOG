@@ -1,4 +1,7 @@
-﻿0.2.0
+﻿0.2.1
+ - Add "settings" link in plugin page
+ 
+0.2.0
  - C+ has removed 'Emissions" type, everything is in  "Divertissement", means it's geo-coded ==> need proxy
 
 0.1.0
