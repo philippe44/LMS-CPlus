@@ -1,4 +1,7 @@
-﻿0.2.1
+﻿0.3.0
+ - add non-blocking socks
+ 
+0.2.1
  - Add "settings" link in plugin page
  
 0.2.0

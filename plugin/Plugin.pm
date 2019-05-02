@@ -23,6 +23,11 @@ use Plugins::CPlus::API;
 use Plugins::CPlus::ProtocolHandler;
 use Plugins::CPlus::ListProtocolHandler;
 
+# override default Slim::Networking::SimpleAsyncHTTP
+use Plugins::CPlus::slim::SimpleAsyncHTTP;
+# override default Slim::Networking::Async::HTTP (might fail)
+eval { require Plugins::Pluzz::slim::HTTP };
+
 my $WEBLINK_SUPPORTED_UA_RE = qr/iPeng|SqueezePad|OrangeSqueeze/i;
 
 use constant IMAGE_URL => 'http://refonte.webservices.francetelevisions.fr';

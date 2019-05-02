@@ -1,6 +1,6 @@
 @echo off
-SET version=0.2.1
-SET type=stable
+SET version=0.3.0
+rem SET type=stable
 SET devroot=..\LMS-CPlus
 xcopy "%devroot%\CHANGELOG" "%devroot%\plugin" /y /d
 CALL :zipxml %type%

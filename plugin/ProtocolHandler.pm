@@ -12,7 +12,6 @@ use Slim::Utils::Prefs;
 use Slim::Utils::Errno;
 use Slim::Utils::Cache;
 
-use Plugins::CPlus::AsyncSocks;
 use Plugins::CPlus::MPEGTS;
 
 my $log   = logger('plugin.cplus');
@@ -108,10 +107,11 @@ sub sysread {
 		$v->{'fetching'} = 1;
 						
 		$log->info("fetching: $url");
+		my $socks = { socksAddr => $prefs->get('socks_server'), socksPort => $prefs->get('socks_port') } if $prefs->get('socks'); 
 			
-		Plugins::CPlus::AsyncSocks->new(
+		Slim::Networking::SimpleAsyncHTTP->new(
 			sub {
-				$v->{'inBuf'} = Plugins::CPlus::AsyncSocks::contentRef($_[0]);
+				$v->{'inBuf'} = $_[0]->contentRef;
 				$v->{'fetching'} = 0;
 				$log->debug("got chunk length: ", length ${$v->{'inBuf'}});
 			},
@@ -121,6 +121,8 @@ sub sysread {
 				$v->{'inBuf'} = undef;
 				$v->{'fetching'} = 0;
 			}, 
+			
+			$socks
 			
 		)->get($url);
 			
@@ -186,8 +188,9 @@ sub getSampleRate {
 	use bytes;
 	
 	my ($url, $cb) = @_;
+	my $socks = { socksAddr => $prefs->get('socks_server'), socksPort => $prefs->get('socks_port') } if $prefs->get('socks'); 
 	
-	Plugins::CPlus::AsyncSocks->new ( 
+	Slim::Networking::SimpleAsyncHTTP->new ( 
 	sub {
 			my $data = shift->content;
 					
@@ -214,6 +217,8 @@ sub getSampleRate {
 			$log->warn("HTTP error, cannot find sample rate");
 			$cb->( undef );
 		},
+		
+		$socks
 
 	)->get( $url, 'Range' => 'bytes=0-16384' );
 
@@ -223,10 +228,11 @@ sub getSampleRate {
 sub getFragments {
 	my ($cb, $id, $song) = @_;
 	my $url	= "http://service.canal-plus.com/video/rest/getvideos/cplus/$id?format=json";
+	my $socks = { socksAddr => $prefs->get('socks_server'), socksPort => $prefs->get('socks_port') } if $prefs->get('socks'); 
 			
 	$log->debug("getting master url for : $url");
 	
-	Plugins::CPlus::AsyncSocks->new ( 
+	Slim::Networking::SimpleAsyncHTTP->new ( 
 		sub {
 			my $result = decode_json(shift->content);
 			my $master = $result->{MEDIA}->{VIDEOS}->{HLS};
@@ -241,6 +247,8 @@ sub getFragments {
 		sub {
 			$cb->(undef);
 		},
+		
+		$socks
 
 	)->get($url);
 }
@@ -248,8 +256,9 @@ sub getFragments {
 
 sub getFragmentsUrl {
 	my ($cb, $url) = @_;
+	my $socks = { socksAddr => $prefs->get('socks_server'), socksPort => $prefs->get('socks_port') } if $prefs->get('socks'); 
 				
-	Plugins::CPlus::AsyncSocks->new ( 
+	Slim::Networking::SimpleAsyncHTTP->new ( 
 		sub {
 			my $result = shift->content;
 			my $bitrate;
@@ -271,7 +280,9 @@ sub getFragmentsUrl {
 			
 		sub {
 			$cb->(undef);
-		}
+		},
+		
+		$socks
 		
 	)->get($url);
 }	
@@ -279,8 +290,9 @@ sub getFragmentsUrl {
 
 sub getFragmentList {
 	my ($cb, $url, $bitrate) = @_;
+	my $socks = { socksAddr => $prefs->get('socks_server'), socksPort => $prefs->get('socks_port') } if $prefs->get('socks'); 
 			
-	Plugins::CPlus::AsyncSocks->new ( 
+	Slim::Networking::SimpleAsyncHTTP->new ( 
 		sub {
 			my $fragmentList = shift->content;
 			my @fragments;
@@ -299,7 +311,9 @@ sub getFragmentList {
 			
 		sub {
 			$cb->(undef);
-		}
+		},
+		
+		$socks
 					
 	)->get($url);
 }	

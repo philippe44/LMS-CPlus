@@ -12,8 +12,6 @@ use Slim::Utils::Cache;
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 	
-use Plugins::CPlus::AsyncSocks;
-
 my $prefs = preferences('plugin.cplus');
 my $log   = logger('plugin.cplus');
 my $cache = Slim::Utils::Cache->new();
@@ -138,8 +136,10 @@ sub search	{
 		$cb->($cached);
 		return;
 	}
+	
+	my $socks = { socksAddr => $prefs->get('socks_server'), socksPort => $prefs->get('socks_port') } if $prefs->get('socks'); 
 
-	Plugins::CPlus::AsyncSocks->new(
+	Slim::Networking::SimpleAsyncHTTP->new(
 	
 		sub {
 			my $response = shift;
@@ -154,7 +154,9 @@ sub search	{
 		sub {
 			$log->error($_[1]);
 			$cb->( { error => $_[1] } );
-		}
+		},
+		
+		$socks
 
 	)->get($url);
 }
