@@ -1,17 +1,17 @@
 <?xml version='1.0' standalone='yes'?>
 <extensions>
+  <plugins>
+    <plugin version="0.3.1" maxTarget="7.*" minTarget="7.7" name="CPlus">
+      <url>http://downloads.sourceforge.net/project/lms-cplus/dev/CPlus-0.3.1.zip</url>
+      <link>http://github.com/philippe44/LMS-CPlus</link>
+      <email>philippe_44@outlook.com</email>
+      <title lang="EN">CPlus</title>
+      <creator>Philippe</creator>
+      <desc lang="EN">Play Canal+ video</desc>
+      <sha>0e09df02c03d0689787a1d56bf92b6e48b75088d</sha>
+    </plugin>
+  </plugins>
   <details>
     <title lang="EN">Philippe's CPlus plugin - development</title>
   </details>
-  <plugins>
-    <plugin version="0.3.1" maxTarget="7.*" minTarget="7.7" name="CPlus">
-      <desc lang="EN">Play Canal+ video</desc>
-      <creator>Philippe</creator>
-      <link>http://github.com/philippe44/LMS-CPlus</link>
-      <title lang="EN">CPlus</title>
-      <sha>c8d782863e2c6b47695c8e48a324a133f6dd8ba2</sha>
-      <url>http://downloads.sourceforge.net/project/lms-cplus/dev/CPlus-0.3.1.zip</url>
-      <email>philippe_44@outlook.com</email>
-    </plugin>
-  </plugins>
 </extensions>
