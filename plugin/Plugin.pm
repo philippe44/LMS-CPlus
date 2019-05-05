@@ -8,11 +8,6 @@ use strict;
 use base qw(Slim::Plugin::OPMLBased);
 use File::Spec::Functions;
 
-use FindBin qw($Bin);
-use lib catdir($Bin, 'Plugins', 'CPlus', 'lib');
-use IO::Socket::Socks;
-
-use Data::Dumper;
 use Encode qw(encode decode);
 
 use Slim::Utils::Strings qw(string cstring);
@@ -25,12 +20,7 @@ use Plugins::CPlus::ListProtocolHandler;
 
 # see if HTTPSocks is available
 eval "require Slim::Networking::Async::Socket::HTTPSocks";
-if ($@) {
-	# override default Slim::Networking::SimpleAsyncHTTP
-	eval "require Plugins::CPlus::Slim::SimpleAsyncHTTP";
-	# override default Slim::Networking::Async::HTTP
-	eval "require Plugins::CPlus::Slim::HTTP";
-}
+die ("this plugin needs HTTPSocks to work") if ($@);
 
 my $WEBLINK_SUPPORTED_UA_RE = qr/iPeng|SqueezePad|OrangeSqueeze/i;
 

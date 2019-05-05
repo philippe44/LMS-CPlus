@@ -20,13 +20,8 @@ use constant API_URL => 'http://service.mycanal.fr/authenticate.json/ipad/1.7?ge
 
 sub getSocks {
 	return {
-		socks => {
-			ProxyAddr => $prefs->get('socks_server'), 
-			ProxyPort => $prefs->get('socks_port'),
-			Username => $prefs->get('socks_user'),
-			Password => $prefs->get('socks_password'),
-		}	
-	} if $prefs->get('socks'); 
+		socks => $prefs->get('socks')
+	};	
 }
 
 sub searchProgram {
