@@ -26,7 +26,7 @@ PLUGIN_CPLUS_SOCKS
 	EN	Socks proxy configuration
 
 PLUGIN_CPLUS_SOCKS_DESC
-	EN	Use a socks proxy server (avoid geolock)
+	EN	Use a socks proxy server (avoid geolock). Only set User and Password if your server requires it
 
 PLUGIN_CPLUS_USESOCKS
 	EN	Activate
@@ -36,6 +36,12 @@ PLUGIN_CPLUS_SOCKSSERVER
 	
 PLUGIN_CPLUS_SOCKSPORT
 	EN	Port
+	
+PLUGIN_CPLUS_SOCKSUSER
+	EN	User
+	
+PLUGIN_CPLUS_SOCKSPASSWORD
+	EN	Password
 
 PLUGIN_CPLUS_CACHE
 	EN	Cache options

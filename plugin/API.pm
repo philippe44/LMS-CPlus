@@ -18,6 +18,17 @@ my $cache = Slim::Utils::Cache->new();
 
 use constant API_URL => 'http://service.mycanal.fr/authenticate.json/ipad/1.7?geozone=1&highResolution=1&isActivated=0&isAuthenticated=0&paired=0';
 
+sub getSocks {
+	return {
+		socks => {
+			ProxyAddr => $prefs->get('socks_server'), 
+			ProxyPort => $prefs->get('socks_port'),
+			Username => $prefs->get('socks_user'),
+			Password => $prefs->get('socks_password'),
+		}	
+	} if $prefs->get('socks'); 
+}
+
 sub searchProgram {
 	my ( $cb ) = @_;
 	my $step1, $step2, $step3;
@@ -137,8 +148,6 @@ sub search	{
 		return;
 	}
 	
-	my $socks = { socksAddr => $prefs->get('socks_server'), socksPort => $prefs->get('socks_port') } if $prefs->get('socks'); 
-
 	Slim::Networking::SimpleAsyncHTTP->new(
 	
 		sub {
@@ -156,7 +165,7 @@ sub search	{
 			$cb->( { error => $_[1] } );
 		},
 		
-		$socks
+		getSocks,
 
 	)->get($url);
 }

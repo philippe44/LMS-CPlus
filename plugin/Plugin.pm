@@ -23,10 +23,14 @@ use Plugins::CPlus::API;
 use Plugins::CPlus::ProtocolHandler;
 use Plugins::CPlus::ListProtocolHandler;
 
-# override default Slim::Networking::SimpleAsyncHTTP
-use Plugins::CPlus::Slim::SimpleAsyncHTTP;
-# override default Slim::Networking::Async::HTTP (might fail)
-eval { require Plugins::CPlus::Slim::HTTP };
+# see if HTTPSocks is available
+eval "require Slim::Networking::Async::Socket::HTTPSocks";
+if ($@) {
+	# override default Slim::Networking::SimpleAsyncHTTP
+	eval "require Plugins::CPlus::Slim::SimpleAsyncHTTP";
+	# override default Slim::Networking::Async::HTTP
+	eval "require Plugins::CPlus::Slim::HTTP";
+}
 
 my $WEBLINK_SUPPORTED_UA_RE = qr/iPeng|SqueezePad|OrangeSqueeze/i;
 
