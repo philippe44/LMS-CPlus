@@ -1,16 +1,15 @@
 package Plugins::CPlus::API;
 
-#use strict;
+use strict;
 
 use Digest::MD5 qw(md5_hex);
 use JSON::XS::VersionOneAndTwo;
 use List::Util qw(min max first);
 
-use Data::Dumper;
-
 use Slim::Utils::Cache;
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
+use Slim::Utils::Misc qw(unobfuscate);
 	
 my $prefs = preferences('plugin.cplus');
 my $log   = logger('plugin.cplus');
@@ -19,14 +18,20 @@ my $cache = Slim::Utils::Cache->new();
 use constant API_URL => 'http://service.mycanal.fr/authenticate.json/ipad/1.7?geozone=1&highResolution=1&isActivated=0&isAuthenticated=0&paired=0';
 
 sub getSocks {
+	my ($server, $port) = split (/:/, $prefs->get('socksProxy'));
 	return {
-		socks => $prefs->get('socks')
+		socks => {
+			ProxyAddr => $server,
+			ProxyPort => $port,
+			Username => unobfuscate($prefs->get('socksUsername')),
+			Password => unobfuscate($prefs->get('socksPassword')),
+		}	
 	};	
 }
 
 sub searchProgram {
 	my ( $cb ) = @_;
-	my $step1, $step2, $step3;
+	my ($step1, $step2, $step3);
 	
 	$step1 = sub {
 		my $result = shift;

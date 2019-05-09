@@ -18,9 +18,13 @@ use Plugins::CPlus::API;
 use Plugins::CPlus::ProtocolHandler;
 use Plugins::CPlus::ListProtocolHandler;
 
-# see if HTTPSocks is available
+# see if HTTP(S)Socks is available
 eval "require Slim::Networking::Async::Socket::HTTPSocks";
-die ("this plugin needs HTTPSocks to work") if ($@);
+if ($@) {
+	eval "require Plugins::CPlus::Slim::HTTPSocks";
+	eval "require Plugins::CPlus::Slim::HTTPSSocks";
+	eval "require Plugins::CPlus::Slim::Misc";
+}
 
 my $WEBLINK_SUPPORTED_UA_RE = qr/iPeng|SqueezePad|OrangeSqueeze/i;
 

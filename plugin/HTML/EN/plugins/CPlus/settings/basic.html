@@ -5,13 +5,24 @@
 	[% END %]
 
 	<div class="prefDesc">
-	[% WRAPPER setting title="PLUGIN_CPLUS_SOCKS" desc="PLUGIN_CPLUS_SOCKS_DESC" %]
-		<input name="pref_socks" type="checkbox" [% IF prefs.pref_socks %] checked [% END %]>
+	[% WRAPPER setting title="PLUGIN_CPLUS_CACHE" desc="PLUGIN_CPLUS_CACHE_DESC" %]
+		<input name="pref_no_cache" type="checkbox" [% IF prefs.pref_no_cache %] checked [% END %]>
 	[% END %]
 	
-	[% WRAPPER setting title="PLUGIN_CPLUS_CACHE" desc="PLUGIN_CPLUS_CACHE_DESC" %]
-		[% "PLUGIN_CPLUS_DISABLECACHE" | string %]
-		<input name="pref_no_cache" type="checkbox" [% IF prefs.pref_no_cache %] checked [% END %]>
+	[% WRAPPER setting title="PLUGIN_CPLUS_SOCKS" desc="PLUGIN_CPLUS_SOCKS_DESC" %]
+		<input name="pref_socks" type="checkbox" [% IF prefs.pref_socks %] checked [% END %]>
+	[% END %]		
+		
+	[% WRAPPER setting title="PLUGIN_CPLUS_SOCKSPROXY" desc="" %]
+		<input type=text class="stdedit" name="pref_socksProxy" id="socksProxy" value="[% prefs.pref_socksProxy %]" size="40">
+	[% END %]
+	
+	[% WRAPPER setting title="PLUGIN_CPLUS_SOCKSUSERNAME" desc="" %]
+		<input type=text class="stdedit" name="pref_socksUsername" id="socksUsername" value="[% prefs.pref_socksUsername %]" size="40">
+	[% END %]
+		
+	[% WRAPPER setting title="PLUGIN_CPLUS_SOCKSPASSWORD" desc="" %]
+		<input type=password class="stdedit" name="pref_socksPassword" id="socksPassword" value="[% prefs.pref_socksPassword %]" size="40">
 	[% END %]
 	</div>
 

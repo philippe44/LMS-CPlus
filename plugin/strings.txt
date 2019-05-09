@@ -23,17 +23,27 @@ PLUGIN_CPLUS_BANNER_TEXT
 	EN	Please note that this plugin streams the entire Canal+ video file to playback the audio stream.  This will use use significantly more network bandwidth than audio only streaming.  Please consider this if your internet connection has a usage charge.
 
 PLUGIN_CPLUS_SOCKS
-	EN	Use SOCKS proxy
+	EN	Enable SOCKS proxy
 
 PLUGIN_CPLUS_SOCKS_DESC
-	EN	Use the SOCKS server set in LMS's Network settings (avoid geolock)
+	EN	Set parameters of SOCKS proxy (avoid geolock). Use format of addr:port where addr can be an IP address or name for 
+	EN	proxy. Username and Password are optional but be aware that they sent in cleartext to SOCKS proxy
 	
-PLUGIN_CPLUS_CACHE
-	EN	Cache options
-	
-PLUGIN_CPLUS_DISABLECACHE
-	EN	Disable
+PLUGIN_CPLUS_SOCKSENABLED
+	EN	Enabled
 
+PLUGIN_CPLUS_SOCKSPROXY
+	EN	Server
+	
+PLUGIN_CPLUS_SOCKSUSERNAME
+	EN	Username
+
+PLUGIN_CPLUS_SOCKSPASSWORD
+	EN	Password
+		
+PLUGIN_CPLUS_CACHE
+	EN	Disable cache
+	
 PLUGIN_CPLUS_CACHE_DESC
 	EN	Disable cache of pages (useful when changing from proxy / no proxy)
 
