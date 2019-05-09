@@ -5,10 +5,13 @@ package Plugins::CPlus::Plugin;
 # Released under GPLv2
 
 use strict;
+
 use base qw(Slim::Plugin::OPMLBased);
 use File::Spec::Functions;
-
 use Encode qw(encode decode);
+
+use FindBin qw($Bin);
+use lib catdir($Bin, 'Plugins', 'CPlus', 'lib');
 
 use Slim::Utils::Strings qw(string cstring);
 use Slim::Utils::Prefs;
@@ -21,9 +24,11 @@ use Plugins::CPlus::ListProtocolHandler;
 # see if HTTP(S)Socks is available
 eval "require Slim::Networking::Async::Socket::HTTPSocks";
 if ($@) {
-	eval "require Plugins::CPlus::Slim::HTTPSocks";
-	eval "require Plugins::CPlus::Slim::HTTPSSocks";
-	eval "require Plugins::CPlus::Slim::Misc";
+	require Plugins::CPlus::Slim::HTTP;
+	require Plugins::CPlus::Slim::HTTPSocks;
+	require Plugins::CPlus::Slim::HTTPSSocks;
+	require Plugins::CPlus::Slim::SimpleAsyncHTTP;
+	require Plugins::CPlus::Slim::Misc;
 }
 
 my $WEBLINK_SUPPORTED_UA_RE = qr/iPeng|SqueezePad|OrangeSqueeze/i;

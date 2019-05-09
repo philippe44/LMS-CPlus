@@ -12,7 +12,7 @@ use constant PIDPAT	     => 2;
 use constant PIDPMT	     => 3;
 use constant AUDIO	     => 4;
 
-my $log   = logger('plugin.pluzz');
+my $log   = logger('plugin.cplus');
 
 # offset from the start of the packet payload 	
 # 3 for table header, 5 for table syntax, 2 for PAT/PMT	
