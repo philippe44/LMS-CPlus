@@ -6,7 +6,7 @@ __PACKAGE__->mk_accessor( rw => qw(
 	socks
 ) );
 
-my $base = 'CPlus';
+my $base = 'Pluzz';
 
 sub new {
 	my ($class, $args) = @_;
