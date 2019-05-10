@@ -28,7 +28,6 @@ if ($@) {
 	require Plugins::CPlus::Slim::HTTPSocks;
 	require Plugins::CPlus::Slim::HTTPSSocks;
 	require Plugins::CPlus::Slim::SimpleAsyncHTTP;
-	require Plugins::CPlus::Slim::Misc;
 }
 
 my $WEBLINK_SUPPORTED_UA_RE = qr/iPeng|SqueezePad|OrangeSqueeze/i;
