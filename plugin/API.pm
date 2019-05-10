@@ -5,7 +5,7 @@ use strict;
 use Digest::MD5 qw(md5_hex);
 use JSON::XS::VersionOneAndTwo;
 use List::Util qw(min max first);
-use MIME::base64;
+use MIME::Base64;
 use Exporter qw(import);
 
 use Slim::Utils::Cache;
