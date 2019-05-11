@@ -1,15 +1,15 @@
 <?xml version='1.0' standalone='yes'?>
 <extensions>
-  <icon>plugins/CPlus/html/images/cplus.png</icon>
-  <version>0.3.2</version>
   <optionsURL>plugins/CPlus/settings/basic.html</optionsURL>
+  <version>0.4.0</version>
   <defaultState>enabled</defaultState>
-  <targetApplication>
-    <minVersion>7.7</minVersion>
-    <maxVersion>7.*</maxVersion>
-    <id>SlimServer</id>
-  </targetApplication>
-  <description>PLUGIN_CPLUS_DESC</description>
   <module>Plugins::CPlus::Plugin</module>
+  <description>PLUGIN_CPLUS_DESC</description>
   <name>PLUGIN_CPLUS</name>
+  <icon>plugins/CPlus/html/images/cplus.png</icon>
+  <targetApplication>
+    <id>SlimServer</id>
+    <maxVersion>7.*</maxVersion>
+    <minVersion>7.7</minVersion>
+  </targetApplication>
 </extensions>

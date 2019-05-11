@@ -10,9 +10,6 @@ use base qw(Slim::Plugin::OPMLBased);
 use File::Spec::Functions;
 use Encode qw(encode decode);
 
-use FindBin qw($Bin);
-use lib catdir($Bin, 'Plugins', 'CPlus', 'lib');
-
 use Slim::Utils::Strings qw(string cstring);
 use Slim::Utils::Prefs;
 use Slim::Utils::Log;
@@ -22,13 +19,7 @@ use Plugins::CPlus::ProtocolHandler;
 use Plugins::CPlus::ListProtocolHandler;
 
 # see if HTTP(S)Socks is available
-eval "require Slim::Networking::Async::Socket::HTTPSocks";
-if ($@) {
-	require Plugins::CPlus::Slim::HTTP;
-	require Plugins::CPlus::Slim::HTTPSocks;
-	require Plugins::CPlus::Slim::HTTPSSocks;
-	require Plugins::CPlus::Slim::SimpleAsyncHTTP;
-}
+eval "require Slim::Networking::Async::Socket::HTTPSocks" or die "Please update your LMS version to recent build";
 
 my $WEBLINK_SUPPORTED_UA_RE = qr/iPeng|SqueezePad|OrangeSqueeze/i;
 
