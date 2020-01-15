@@ -21,6 +21,7 @@ my $cache = Slim::Utils::Cache->new();
 use constant API_URL => 'http://service.mycanal.fr/authenticate.json/ipad/1.7?geozone=1&highResolution=1&isActivated=0&isAuthenticated=0&paired=0';
 
 sub getSocks {
+	return undef unless $prefs->get('socks');
 	my ($server, $port) = split (/:/, $prefs->get('socksProxy'));
 	return {
 		socks => {

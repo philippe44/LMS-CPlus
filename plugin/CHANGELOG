@@ -1,4 +1,10 @@
-﻿0.4.0
+﻿0.5.0
+ - LMS 8.0 compatibility
+ 
+0.4.1
+ - Use 'socks' boolean
+
+0.4.0
  - need LMS version that supports HTTPSocks
  
 0.3.2
