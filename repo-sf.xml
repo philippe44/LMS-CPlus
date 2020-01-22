@@ -4,7 +4,7 @@
     <plugin version="0.5.0" name="CPlus" minTarget="7.7" maxTarget="8.*">
       <link>http://github.com/philippe44/LMS-CPlus</link>
       <creator>Philippe</creator>
-      <sha>5ec0c27a421efd3d859e88f6c546c0b97545bc9a</sha>
+      <sha>183c4c388c41566cd9d7369a390f7b37bb2352ec</sha>
       <email>philippe_44@outlook.com</email>
       <desc lang="EN">Play Canal+ video</desc>
       <url>http://downloads.sourceforge.net/project/lms-cplus/dev/CPlus-0.5.0.zip</url>
