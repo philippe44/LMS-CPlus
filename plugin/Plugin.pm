@@ -122,7 +122,6 @@ sub toplevel {
 
 sub recentHandler {
 	my ($client, $callback, $args) = @_;
-
 	my @menu;
 
 	for my $item(reverse values %recentlyPlayed) {
@@ -146,8 +145,6 @@ sub recentHandler {
 						url    => $item->{'url'} . "&lastpos=$lastpos",
 					} ],
 				};
-	
-	
 		} else {	
 			unshift  @menu, {
 				name => $item->{'name'},
@@ -218,7 +215,6 @@ sub addEpisodes {
 						url    => "cplus://$entry->{onClick}->{URLPage}&artist=$params->{artist}&album=$params->{album}&lastpos=$lastpos",
 					} ],
 				};
-			
 		
 			} else {
 				push @$items, {
