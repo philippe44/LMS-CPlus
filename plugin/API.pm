@@ -113,9 +113,7 @@ sub searchEpisode {
 sub updateMetadata {
 	my ( $cb, $url ) = @_;
 	my $id = getId($url);
-	
-	$url =~ m|&artist=([^&]+)&album=(.+)|;
-	my ($artist, $album) = ($1, $2);
+	my ($artist, $album) = $url =~ m|&artist=([^&]+)&album=(.+)|;
 	
 	$log->debug("get metadata for $url ($id $artist $album)");
 	

@@ -126,13 +126,37 @@ sub recentHandler {
 	my @menu;
 
 	for my $item(reverse values %recentlyPlayed) {
-		unshift  @menu, {
-			name => $item->{'name'},
-			play => $item->{'url'},
-			on_select => 'play',
-			image => $item->{'icon'},
-			type => 'playlist',
-		};
+		my $id = Plugins::CPlus::API::getId($item->{'url'});
+		
+		if (my $lastpos = $cache->get("cp:lastpos-$id")) {
+			my $position = Slim::Utils::DateTime::timeFormat($lastpos);
+			$position =~ s/^0+[:\.]//;
+				
+			unshift  @menu, {
+				name => $item->{'name'},
+				image => $item->{'icon'},
+				type => 'link',
+				items => [ {
+						title => cstring(undef, 'PLUGIN_CPLUS_PLAY_FROM_BEGINNING'),
+						type   => 'audio',
+						url    => $item->{'url'},
+					}, {
+						title => cstring(undef, 'PLUGIN_CPLUS_PLAY_FROM_POSITION_X', $position),
+						type   => 'audio',
+						url    => $item->{'url'} . "&lastpos=$lastpos",
+					} ],
+				};
+	
+	
+		} else {	
+			unshift  @menu, {
+				name => $item->{'name'},
+				play => $item->{'url'},
+				on_select => 'play',
+				image => $item->{'icon'},
+				type => 'playlist',
+			};
+		}	
 	}
 
 	$callback->({ items => \@menu });
@@ -176,13 +200,35 @@ sub addEpisodes {
 				
 		for my $entry (@$result) {
 		
-			push @$items, {
-				name 		=> "$entry->{title} ($entry->{subtitle})",
-				type 		=> 'playlist',
-				on_select 	=> 'play',
-				play 		=> "cplus://$entry->{onClick}->{URLPage}&artist=$params->{artist}&album=$params->{album}",
-				image 		=> $entry->{URLImage},
-			};
+			if (my $lastpos = $cache->get("pz:lastpos-" . $entry->{onClick}->{URLPage})) {
+				my $position = Slim::Utils::DateTime::timeFormat($lastpos);
+				$position =~ s/^0+[:\.]//;
+				
+				push @$items, {
+					name 		=> "$entry->{title} ($entry->{subtitle})",
+					type 		=> 'link',
+					image 		=> $entry->{URLImage},
+					items => [ {
+						title => cstring(undef, 'PLUGIN_CPLUS_PLAY_FROM_BEGINNING'),
+						type   => 'audio',
+						url    => "cplus://$entry->{onClick}->{URLPage}&artist=$params->{artist}&album=$params->{album}",
+					}, {
+						title => cstring(undef, 'PLUGIN_PLUZZ_PLAY_FROM_POSITION_X', $position),
+						type   => 'audio',
+						url    => "cplus://$entry->{onClick}->{URLPage}&artist=$params->{artist}&album=$params->{album}&lastpos=$lastpos",
+					} ],
+				};
+			
+		
+			} else {
+				push @$items, {
+					name 		=> "$entry->{title} ($entry->{subtitle})",
+					type 		=> 'playlist',
+					on_select 	=> 'play',
+					play 		=> "cplus://$entry->{onClick}->{URLPage}&artist=$params->{artist}&album=$params->{album}",
+					image 		=> $entry->{URLImage},
+				};
+			}	
 			
 		}
 		

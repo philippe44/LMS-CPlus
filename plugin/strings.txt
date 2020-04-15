@@ -46,6 +46,12 @@ PLUGIN_CPLUS_CACHE
 	
 PLUGIN_CPLUS_CACHE_DESC
 	EN	Disable cache of pages (useful when changing from proxy / no proxy)
+	
+PLUGIN_CPLUS_PLAY_FROM_BEGINNING
+	EN	Play from the beginning
+
+PLUGIN_CPLUS_PLAY_FROM_POSITION_X
+	EN	Play from last position (%s)
 
 	
 	
