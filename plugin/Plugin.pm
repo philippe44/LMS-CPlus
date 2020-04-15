@@ -197,7 +197,7 @@ sub addEpisodes {
 				
 		for my $entry (@$result) {
 		
-			if (my $lastpos = $cache->get("pz:lastpos-" . $entry->{onClick}->{URLPage})) {
+			if (my $lastpos = $cache->get("cp:lastpos-" . Plugins::CPlus::API::getId("cplus://" . $entry->{onClick}->{URLPage}))) {
 				my $position = Slim::Utils::DateTime::timeFormat($lastpos);
 				$position =~ s/^0+[:\.]//;
 				
