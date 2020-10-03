@@ -8,7 +8,7 @@
     <minVersion>7.7</minVersion>
   </targetApplication>
   <defaultState>enabled</defaultState>
-  <version>0.6.0</version>
+  <version>0.10.0</version>
   <name>PLUGIN_CPLUS</name>
   <description>PLUGIN_CPLUS_DESC</description>
   <module>Plugins::CPlus::Plugin</module>

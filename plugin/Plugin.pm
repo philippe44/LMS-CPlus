@@ -9,6 +9,7 @@ use strict;
 use base qw(Slim::Plugin::OPMLBased);
 use File::Spec::Functions;
 use Encode qw(encode decode);
+use Data::Dumper;
 
 use Slim::Utils::Strings qw(string cstring);
 use Slim::Utils::Prefs;
@@ -110,7 +111,7 @@ sub saveRecentlyPlayed {
 sub toplevel {
 	my ($client, $callback, $args) = @_;
 			
-	addChannels($client, sub {
+	addPrograms($client, sub {
 			my $items = shift;
 			
 			unshift @$items, { name => cstring($client, 'PLUGIN_CPLUS_RECENTLYPLAYED'), image => Plugins::CPlus::API::getIcon(), url  => \&recentHandler };
@@ -146,6 +147,7 @@ sub recentHandler {
 					} ],
 				};
 		} else {	
+		
 			unshift  @menu, {
 				name => $item->{'name'},
 				play => $item->{'url'},
@@ -153,31 +155,28 @@ sub recentHandler {
 				image => $item->{'icon'},
 				type => 'playlist',
 			};
+			
 		}	
 	}
 
 	$callback->({ items => \@menu });
 }
 
-
-sub addChannels {
+sub addPrograms {
 	my ($client, $cb, $args) = @_;
 		
 	Plugins::CPlus::API::searchProgram( sub {
 		my $items = [];
-		my $result = shift;
+		my $result = shift->{contents};
 				
 		for my $entry ( @{$result} ) {
 																							
 			push @$items, {
-				name  => $entry->{onClick}->{displayName},
-				type  => 'playlist',
-				url   => \&addEpisodes,
-				image 			=> $entry->{URLImage} || Plugins::CPlus::API::getIcon(),
-				passthrough 	=> [ { link => $entry->{onClick}->{URLPage}, 
-									   artist => $entry->{subtitle}, album => $entry->{title} } ],
-				favorites_url  	=> "cpplaylist://link=$entry->{onClick}->{URLPage}&artist=$entry->{subtitle}&album=$entry->{title}",
-				favorites_type 	=> 'audio',
+				name  => $entry->{title},
+				type  => 'link',
+				url   => \&handleProgram,
+				image => $entry->{URLImage} || Plugins::CPlus::API::getIcon(),
+				passthrough	=> [ { url => $entry->{onClick}->{URLPage}} ],
 			};
 					
 		}
@@ -187,52 +186,116 @@ sub addChannels {
 	} );	
 }
 
-
-sub addEpisodes {
+sub handleProgram {
 	my ($client, $cb, $args, $params) = @_;
-	
-	Plugins::CPlus::API::searchEpisode( sub {
-		my $result = shift;
+		
+	Plugins::CPlus::API::search( $params->{url}, sub {
 		my $items = [];
-				
-		for my $entry (@$result) {
+		my $result = shift;
 		
-			if (my $lastpos = $cache->get("cp:lastpos-" . Plugins::CPlus::API::getId("cplus://" . $entry->{onClick}->{URLPage}))) {
-				my $position = Slim::Utils::DateTime::timeFormat($lastpos);
-				$position =~ s/^0+[:\.]//;
-				
+		if ( $result->{contents} ) {		
+			# we have a sub-program
+			for my $entry ( @{$result->{contents}} ) {
 				push @$items, {
-					name 		=> "$entry->{title} ($entry->{subtitle})",
-					type 		=> 'link',
-					image 		=> $entry->{URLImage},
-					items => [ {
-						title => cstring(undef, 'PLUGIN_CPLUS_PLAY_FROM_BEGINNING'),
-						type   => 'audio',
-						url    => "cplus://$entry->{onClick}->{URLPage}&artist=$params->{artist}&album=$params->{album}",
-					}, {
-						title => cstring(undef, 'PLUGIN_PLUZZ_PLAY_FROM_POSITION_X', $position),
-						type   => 'audio',
-						url    => "cplus://$entry->{onClick}->{URLPage}&artist=$params->{artist}&album=$params->{album}&lastpos=$lastpos",
-					} ],
+					name  => $entry->{title},
+					type  => 'playlist',
+					url   => \&handleSeasons,
+					image 			=> $entry->{URLImage} || Plugins::CPlus::API::getIcon(),
+					passthrough 	=> [ { url => $entry->{onClick}->{URLPage}, album => $entry->{title} } ],
+					favorites_url  	=> "cpplaylist://url=$entry->{onClick}->{URLPage}&album=$entry->{title}",
+					favorites_type 	=> 'audio',
 				};
-		
-			} else {
-				push @$items, {
-					name 		=> "$entry->{title} ($entry->{subtitle})",
-					type 		=> 'playlist',
-					on_select 	=> 'play',
-					play 		=> "cplus://$entry->{onClick}->{URLPage}&artist=$params->{artist}&album=$params->{album}",
-					image 		=> $entry->{URLImage},
-				};
-			}	
+			}					
+			$cb->( $items );
+		} elsif ( $result->{detail}->{seasons} ) {	
+			# we have seasons directly, just show latest one
+			handleEpisodes( $client, $cb, $args, { 
+									url => $result->{detail}->{seasons}->[0]->{onClick}->{URLPage},
+									album => $result->{detail}->{informations}->{title} } );
+		} elsif ( $result->{detail}->{informations}->{contentAvailability} ) {
+			# only on episode in program	
+			my $entry = $result->{detail}->{informations};
 			
-		}
-		
-		$cb->( $items );
-		
-	}, $params );
+			$cache->set("cp:meta-" . $entry->{contentID}, 
+				{ title    => $entry->{title},
+				  icon     => $entry->{URLImage},
+				  cover    => $entry->{URLImage},
+				  type	   => 'Canal+',
+				}, '30days') if ( !$cache->get("cp:meta-" . $entry->{contentID}) );
+
+			createItem( $items, $entry, $args && length $args->{index} );				
+			$cb->( $items );			
+		} else {
+			$cb->( undef );
+		}	
+	} );	
 }
 
+sub handleSeasons {
+	my ($client, $cb, $args, $params) = @_;
+	
+	# don't display seasons, go right to latest episodes
+	Plugins::CPlus::API::search( $params->{url}, sub {
+			my $result = shift;
+			return $cb->( $result ) if $result->{error};
+			handleEpisodes( $client, $cb, $args, { 
+								url => $result->{detail}->{seasons}->[0]->{onClick}->{URLPage}, 
+								album => $params->{album} } );
+	} );
+}	
+
+sub handleEpisodes {
+	my ($client, $cb, $args, $params) = @_;
+	
+	Plugins::CPlus::API::searchEpisode( $params->{url}, sub {
+		my $result = shift;
+		my $items = [];
+
+		for my $entry (@$result) {
+			createItem( $items, $entry, $args && length $args->{index} );
+		}
+		
+		$cb->( $items );				
+	}, $params );
+}	
+			
+sub createItem {
+	my ($items, $entry, $enable) = @_;
+	my $lastpos = $cache->get("cp:lastpos-$entry->{contentID}");
+				
+	if ($lastpos && $enable) {
+		my $position = Slim::Utils::DateTime::timeFormat($lastpos);
+		$position =~ s/^0+[:\.]//;
+
+		push @$items, {
+			name 		=> $entry->{title},
+			type 		=> 'link',
+			image 		=> $entry->{URLImage},
+			items => [ {
+				title => cstring(undef, 'PLUGIN_CPLUS_PLAY_FROM_BEGINNING'),
+				type   => 'audio',
+				url    => "cplus://id=$entry->{contentID}",
+			}, {
+				title => cstring(undef, 'PLUGIN_CPLUS_PLAY_FROM_POSITION_X', $position),
+				type   => 'audio',
+				url    => "cplus://id=$entry->{contentID}&lastpos=$lastpos",
+			} ],
+		};
+		
+	} else {
+
+		push @$items, {
+			name 		=> $entry->{title},
+			type 		=> 'playlist',
+			on_select 	=> 'play',
+			play 		=> "cplus://id=$entry->{contentID}",
+			image 		=> $entry->{URLImage},
+			playall		=> 1,
+			duration	=> $entry->{duration},					
+		};
+
+	}	
+}	
 
 
 1;

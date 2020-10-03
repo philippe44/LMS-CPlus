@@ -6,7 +6,6 @@ use Slim::Utils::Log;
 
 use Plugins::CPlus::API;
 use Plugins::CPlus::Plugin;
-use Data::Dumper;
 
 Slim::Player::ProtocolHandlers->registerHandler('cpplaylist', __PACKAGE__);
 
@@ -16,16 +15,13 @@ sub overridePlayback {
 	my ( $class, $client, $url ) = @_;
 	my $params;
 		
-	return undef if $url !~ m|link=(.+)&artist=([^&]+)&album=(.+)|i; 
-	($params->{link}, $params->{artist}, $params->{album}) = ($1, $2, $3);
+	return undef if $url !~ m|url=(.+)&album=(.+)|i; 
+	($params->{url}, $params->{album}) = ($1, $2);
 	
-	$log->error("playlist override $params->{link}, $params->{artist}, $params->{album}");
+	$log->info("playlist override $params->{url}, $params->{album}");
 	
-	Plugins::CPlus::Plugin->addEpisodes( sub {
-			my $result = shift;
-			
-			createPlaylist($client, $result); 
-			
+	Plugins::CPlus::Plugin->handleSeasons( sub {
+			createPlaylist($client, shift); 
 		}, undef, $params );
 			
 	return 1;
@@ -36,8 +32,7 @@ sub createPlaylist {
 	my @tracks;
 		
 	for my $item (@{$items}) {
-		push @tracks, Slim::Schema->updateOrCreate( {
-				'url'        => $item->{play} });
+		push @tracks, Slim::Schema->updateOrCreate( { 'url' => $item->{play} } );
 	}	
 	
 	$client->execute([ 'playlist', 'clear' ]);
@@ -45,14 +40,8 @@ sub createPlaylist {
 	$client->execute([ 'play' ]);
 }
 
-sub canDirectStream {
-	return 1;
-}
-
-sub contentType {
-	return 'cplus';
-}
-
+sub canDirectStream { 1; } 
+sub contentType { 'cplus' }
 sub isRemote { 1 }
 
 

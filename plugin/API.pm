@@ -35,107 +35,50 @@ sub getSocks {
 
 sub searchProgram {
 	my ( $cb ) = @_;
-	my ($step1, $step2, $step3);
+
+	# scrape page for programs
+	search( 'https://www.mycanal.fr/chaines/canalplus-en-clair',  sub {
+					my $data = shift;
+	
+					($data) = $data =~ /window\.__data\=(.*?)\; window\.app_config/;
+					$data = decode_json($data);
+					$data = $data->{templates}->{landing}->{strates};
+					($data) = grep { $_->{type} eq "contentRow" && $_->{title} =~/missions Canal/ } @{$data};				
+					return $cb->( $data );
+				}, {_raw => 1} 
+	);
+}
+
+sub searchEpisode {
+	my ($url, $cb, $params) = @_;
+	my $step1;
+		
+	$log->debug("get episodes for $url");
 	
 	$step1 = sub {
 		my $result = shift;
-		
-		return $cb->( $result ) if $result->{error};
-				
-		$result = first { $_->{picto} eq 'OnDemand' } @{$result->{arborescence}};
-						
-		search( $result->{onClick}->{URLPage}, $step2)
-	};
-	
-	$step2 = sub {
-		my $result = shift;
-		
 		return $cb->( $result ) if $result->{error};
 		
-		$result = first { $_->{type} eq 'links' } @{$result->{strates}};
-		$result = first { $_->{title} eq 'Divertissement' } @{$result->{contents}};
-			
-		search( $result->{onClick}->{URLPage}, $step3)
-	};
-	
-	$step3 = sub {
-		my $result = shift;
-				
-		return $cb->( $result ) if $result->{error};
-		
-		$result = first { $_->{type} eq 'contentGrid' } @{$result->{strates}};
-		my @list = @{$result->{contents}};
-		# $log->debug(Dumper(@list));
-		
-		$cb->( \@list );
-	};
-	
-	search( API_URL, $step1 );
-}
+		my @list = sort { $b->{uploadDate} <=> $a->{uploadDate} } @{$result->{episodes}->{contents}};
 
-
-sub searchEpisode {
-	my ( $cb, $params ) = @_;
-		
-	$log->debug("get episodes for $params->{link}");
-	
-	# list of episodes from an emission link changes pretty quickly
-	$params->{_ttl} = 900;
-		
-	search( $params->{link}, sub {
-		my $result = shift;
-		
-		$result = first { $_->{title} =~ /missions/ || $_->{title} =~ /vid/ } @{$result->{strates}};		
-		my @list = @{$result->{contents}};
-		@list = sort {$b->{contentID} > $a->{contentID}} @list;
-			
 		for my $entry (@list) {
-								
+			#($entry->{_contentID}) = $entry->{contentAvailability}->{availabilities}->{download}->{URLMedias} =~ /([^\/]+)\.json/;
 			$cache->set("cp:meta-" . $entry->{contentID}, 
-				{ title    => "$entry->{title} ($entry->{subtitle})",
+				{ title    => $entry->{title},
 				  icon     => $entry->{URLImage},
 				  cover    => $entry->{URLImage},
-				  duration => 0,
-				  artist   => $params->{artist},
+#				  duration => N/A,
+#				  artist   => $params->{artist},
 				  album    => $params->{album},
 				  type	   => 'Canal+',
-				}, 3600*24) if ( !$cache->get("cp:meta-" . $entry->{contentID}) );
-				
-		}
+				}, '30days') if ( !$cache->get("cp:meta-" . $entry->{contentID}) );
+		}	
 		
 		$cb->( \@list );
+	};
 	
-	}, $params ); 
-	
+	search( $url, $step1, { _ttl => 900 } );
 }	
-
-
-sub updateMetadata {
-	my ( $cb, $url ) = @_;
-	my $id = getId($url);
-	my ($artist, $album) = $url =~ m|&artist=([^&]+)&album=(.+)|;
-	
-	$log->debug("get metadata for $url ($id $artist $album)");
-	
-	search( "http://service.canal-plus.com/video/rest/getvideos/cplus/$id?format=json", sub {
-		my $result = shift;
-											
-		$cache->set( "cp:meta-" . $id, 
-			{ title    => "$result->{INFOS}->{TITRAGE}->{SOUS_TITRE} ($result->{INFOS}->{TITRAGE}->{TITRE})",
-			  icon     => $result->{MEDIA}->{IMAGES}->{GRAND},
-			  cover    => $result->{MEDIA}->{IMAGES}->{GRAND},
-			  duration => $result->{DURATION},
-			  artist   => $artist,
-			  album    => $album,
-			  type	   => 'Canal+',
-			}, 3600*240 );
-				
-		$cb->( $result );
-	
-		}
-	); 
-}
-
 
 sub search	{
 	my ( $url, $cb, $params ) = @_;
@@ -153,11 +96,11 @@ sub search	{
 	Slim::Networking::SimpleAsyncHTTP->new(
 	
 		sub {
-			my $response = shift;
-			my $result = eval { decode_json($response->content) };
+			my $result = shift->content;
+			$result = eval { decode_json($result) } unless $params->{_raw};
 			
 			$result ||= {};
-			$cache->set($cacheKey, $result, $params->{_ttl} || 3600*24);
+			$cache->set($cacheKey, $result, $params->{_ttl} || '1days');
 			
 			$cb->($result, $params);
 		},
@@ -167,7 +110,7 @@ sub search	{
 			$cb->( { error => $_[1] } );
 		},
 		
-		getSocks,
+		#getSocks,
 
 	)->get($url);
 }
@@ -181,7 +124,7 @@ sub getIcon {
 sub getId {
 	my ($url) = @_;
 
-	if ( $url =~ m|(?:cplus)://.+id=(\d+)| ) {
+	if ( $url =~ m|(?:cplus)://id=([^&]+)| ) {
 		return $1;
 	}
 		
