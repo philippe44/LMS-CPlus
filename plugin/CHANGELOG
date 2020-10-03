@@ -1,4 +1,8 @@
-﻿0.10.0
+﻿0.10.1
+ - few fixes
+ - min LMS version is 8.0
+ 
+0.10.0
  - new webservice API
  
 0.5.0
