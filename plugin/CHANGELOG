@@ -1,4 +1,26 @@
-﻿0.10.1
+﻿0.20.6
+ - consolidated close()
+ 
+0.20.5
+ - like really this time
+ 
+0.20.3
+ - finally stop track properly ...
+ 
+0.20.2
+ - improved logging
+ 
+0.20.1
+ - correct end of streaming
+ 
+0.20.0
+ - follow redirection to minimize SSL handshake
+ - use keep-alive sessions
+ 
+0.10.2
+ - return error when file has DRM
+ 
+0.10.1
  - few fixes
  - min LMS version is 8.0
  

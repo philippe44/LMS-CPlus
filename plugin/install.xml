@@ -7,9 +7,11 @@
     <minVersion>8.0</minVersion>
   </targetApplication>
   <optionsURL>plugins/CPlus/settings/basic.html</optionsURL>
-  <defaultState>enabled</defaultState>
-  <version>0.10.1</version>
+  <creator>Philippe</creator>
+  <version>0.20.6</version>
   <name>PLUGIN_CPLUS</name>
   <description>PLUGIN_CPLUS_DESC</description>
+  <email>philippe_44@outlook.com</email>
+  <defaultState>enabled</defaultState>
   <module>Plugins::CPlus::Plugin</module>
 </extensions>

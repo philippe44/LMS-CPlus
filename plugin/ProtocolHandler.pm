@@ -29,12 +29,15 @@ sub new {
 	my $song = $args->{'song'};
 	my $seekdata = $song->can('seekdata') ? $song->seekdata : $song->{'seekdata'};
 	my $track = $song->pluginData('track');
+	my $newtime = $seekdata->{'timeOffset'} || $song->pluginData('lastpos');
+	
+	$log->info("opening track $track->{Url} at offset ", int ($newtime));
 		
 	# erase last position from cache
 	$cache->remove("cp:lastpos-" . Plugins::CPlus::API::getId($args->{'url'}));
 	
 	# move to time offset if needed	
-	if ( my $newtime = ($seekdata->{'timeOffset'} || $song->pluginData('lastpos')) ) {
+	if ( $newtime ) {
 		my $timescale = $song->pluginData('timescale');
 
 		TIME: foreach (@{$track->{c}}) {
@@ -49,25 +52,34 @@ sub new {
 		$args->{'client'}->master->remoteStreamStartTime(Time::HiRes::time() - $newtime);
 	}
 
-	my $self = $class->SUPER::new;
+	my $self = $class->SUPER::new || return;
 	
-	if (defined($self)) {
-		# set esds parameters
-		my $context = { };
-		Plugins::CPlus::m4a::setEsds($context, $track->{QualityLevel}->{SamplingRate}, $track->{QualityLevel}->{Channels}, 2);
-		
-		# set sysread parameters
-		${*$self}{'song'}    = $song;
-		${*$self}{'vars'} = {         # variables which hold state for this instance: (created by "open")
-			'inBuf'       => undef,   #  reference to buffer of received packets
-			'index'  	  => $index,  #  current index in fragments
-			'fetching'    => 0,		  #  flag for waiting chunk data
-			'context'	  => $context,
-			'offset'	  => $offset,
-		};
-	}
+	# set esds parameters
+	my $context = { };
+	Plugins::CPlus::m4a::setEsds($context, $track->{QualityLevel}->{SamplingRate}, $track->{QualityLevel}->{Channels}, 2);
+
+	# set sysread parameters
+	${*$self}{'song'}    = $song;
+	${*$self}{'vars'} = {         # variables which hold state for this instance: (created by "open")
+		'inBuf'       => undef,   #  reference to buffer of received packets
+		'index'  	  => $index,  #  current index in fragments
+		'fetching'    => 0,		  #  flag for waiting chunk data
+		'context'	  => $context,
+		'offset'	  => $offset,
+		'retry'		  => 5,
+		'session' 	  => Slim::Networking::Async::HTTP->new( { socks => Plugins::CPlus::API::getSocks } ),
+		'baseURL'     => $song->pluginData('baseURL'),	
+	};
 
 	return $self;
+}
+
+sub close {
+	my $self = shift;
+	
+	$log->info("end of streaming for ", ${*$self}{'song'}->track->url);	
+	${*{$self}}{'vars'}->{'session'}->disconnect;
+	$self->SUPER::close(@_);
 }
 
 sub onStop {
@@ -105,7 +117,7 @@ sub sysread {
 	use bytes;
 
 	my $self  = $_[0];
-	my $v = ${*{$self}}{'vars'};;
+	my $v = ${*{$self}}{'vars'};
 		
 	# waiting to get next chunk, nothing sor far	
 	if ( $v->{'fetching'} ) {
@@ -118,50 +130,65 @@ sub sysread {
 	
 		my $song = ${*$self}{song};
 		my $track = $song->pluginData('track');
+		my $total = scalar @{$track->{c}}; 
 		
 		# end of stream
-		return 0 if $v->{index} == scalar @{$track->{c}};
+		return 0 if $v->{index} == $total || !$v->{retry};
+		
+		$v->{fetching} = 1;
 		
 		# get next fragment/chunk
 		my $item = @{$track->{c}}[$v->{index}];
-		my $url = $track->{Url};
+		my $suffix = $track->{Url};
 		
-		$url =~ s/{bitrate}/$track->{QualityLevel}->{Bitrate}/;
-		$url =~ s/{start time}/$v->{offset}/;
-		$url = $song->pluginData('baseURL') . "/$url";
+		$suffix =~ s/{bitrate}/$track->{QualityLevel}->{Bitrate}/;
+		$suffix =~ s/{start time}/$v->{offset}/;
+		my $url = $v->{'baseURL'} . "/$suffix";
 		
-		$v->{offset} += $item->{d};
-		$v->{repeat}++;
-		$v->{fetching} = 1;
+		my $request = HTTP::Request->new( GET => $url );
+		$request->header( 'Connection', 'keep-alive' );
+		$request->protocol( 'HTTP/1.1' );
+		
+		$log->info("fetching index:$v->{'index'}/$total url:$url");		
+
+		$v->{'session'}->send_request( {
+				request => $request,
+
+				onRedirect => sub {
+					my $redirect = shift->uri;
+					my $match = (reverse ($suffix) ^ reverse ($redirect)) =~ /^(\x00*)/;
+					$v->{'baseURL'} = substr $redirect, 0, -$+[1] if $match;
+					$log->info("being redirected from $url to $redirect using new base $v->{baseURL}");
+				},
+
+				onBody => sub {
+					$v->{fetching} = 0;
+					$v->{offset} += $item->{d};
+					$v->{repeat}++;	
+					$v->{retry} = 5;
 				
-		if ($v->{repeat} > ($item->{r} || 0)) {
-			$v->{index}++;
-			$v->{repeat} = 0;
-		}
-				
-		$log->info("fetching: $url");
+					if ($v->{repeat} > ($item->{r} || 0)) {
+						$v->{index}++;
+						$v->{repeat} = 0;
+					}
 					
-		Slim::Networking::SimpleAsyncHTTP->new(
-			sub {
-				$v->{inBuf} = $_[0]->contentRef;
-				$v->{fetching} = 0;
-				$log->debug("got chunk length: ", length ${$v->{inBuf}});
-			},
-			
-			sub { 
-				$log->warn("error fetching $url");
-				$v->{inBuf} = undef;
-				$v->{fetching} = 0;
-			}, 
-			
-			Plugins::CPlus::API::getSocks,
-			
-		)->get($url);
-			
+					$v->{inBuf} = \shift->response->content;
+					$log->debug("got chunk length: ", length ${$v->{inBuf}});
+				},
+
+				onError => sub {
+					$v->{'session'}->disconnect;
+					$v->{'fetching'} = 0;					
+					$v->{'retry'} = $v->{index} < $total - 1 ? $v->{'retry'} - 1 : 0;
+					$v->{'baseURL'} = $song->pluginData('baseURL');
+					$log->error("cannot open session for $url ($_[1]) moving back to base URL");					
+				},
+		} );
+		
 		$! = EINTR;
 		return undef;
 	}	
-	
+
 	my $len = Plugins::CPlus::m4a::getAudio($v->{inBuf}, $v->{context}, $_[1], $_[2]);
 	return $len if $len;
 	
@@ -202,7 +229,11 @@ sub getNextTrack {
 			'XX-Profile-Id' => '0',
 			'XX-SERVICE' => 'mycanal',
 		);		
-		$http = Slim::Networking::SimpleAsyncHTTP->new( $step2, $errorCb );
+		
+		$http = Slim::Networking::SimpleAsyncHTTP->new( $step2, $errorCb,  { options => {
+													SSL_cipher_list => 'DEFAULT:!DH', 
+													SSL_verify_mode => Net::SSLeay::VERIFY_NONE,	
+												} } );
 		$http->get( "https://secure-gen-hapi.canal-plus.com/conso/playset?contentId=$id", %headers );
 	};
 	
@@ -212,9 +243,17 @@ sub getNextTrack {
 		my $data = shift->content;	
 		eval { $data = decode_json($data) };
 		($data) = grep { $_->{distTechnology} eq 'download' } @{$data->{available}};
-	
+		
+		if ($data->{drmType} =~ /DRM|Widevine/) {
+			$log->warn("cannot play content $data->{contentID} with DRM $data->{drmType}");
+			return $errorCb->();
+		}	
+
 		# there is no PUT in SimpleAsyncSock
-		$http = Slim::Networking::Async::HTTP->new;
+		$http = Slim::Networking::Async::HTTP->new( { options => {
+									SSL_cipher_list => 'DEFAULT:!DH',
+									SSL_verify_mode => Net::SSLeay::VERIFY_NONE,
+								} } );
 		$http->send_request( {
 			request => HTTP::Request->new( PUT => 'https://secure-gen-hapi.canal-plus.com/conso/view', [%headers], encode_json($data)),
 			onError	=> $errorCb,
@@ -243,7 +282,7 @@ sub getNextTrack {
 		$song->pluginData(baseURL => $video);
 		$log->info("video url: $video");
 		
-		$http = Slim::Networking::SimpleAsyncHTTP->new( $step5, $errorCb, Plugins::CPlus::API::getSocks );
+		$http = Slim::Networking::SimpleAsyncHTTP->new( $step5, $errorCb, { socks => Plugins::CPlus::API::getSocks });
 		$http->get("$video/manifest");
 	};
 	
@@ -310,8 +349,8 @@ sub getCrypto {
 	$step2 = sub {
 		my $data = shift->content;
 		my ($device_id_seed) = $data =~ /"deviceId"[^:]*:[^"]*"([^"]+)/;
-		
 		my $content = "deviceId=$device_id_seed" . "&vect=INTERNET" . "&media=PC" . "&portailId=$crypto->{portail}";
+
 		$http = Slim::Networking::SimpleAsyncHTTP->new( $step3, $errorCb );
 		$http->post('https://pass-api-v2.canal-plus.com/services/apipublique/createToken', $content);
 	};
